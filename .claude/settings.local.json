@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell -Command \"Get-ChildItem -Path ''D:\\\\Android\\\\cmdline-tools'' | Format-List\")",
+      "Bash(powershell:*)",
+      "Bash(\"D:\\\\00_JDK\\\\jdk-17\\\\bin\\\\java.exe\" -version)",
+      "Bash(JAVA_HOME=\"D:/00_JDK/jdk-17\" \"D:/Android/cmdline-tools/latest/bin/sdkmanager.bat\":*)",
+      "Bash(./gradlew.bat assembleDebug:*)",
+      "Bash(cmd.exe /c \"gradlew.bat assembleDebug\")",
+      "Bash(cmd.exe /c \"cd /d d:\\\\00_Study\\\\FitLog && gradlew.bat assembleDebug --stacktrace\")"
+    ]
+  }
+}
