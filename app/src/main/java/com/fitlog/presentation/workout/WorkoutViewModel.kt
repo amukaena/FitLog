@@ -1,5 +1,6 @@
 package com.fitlog.presentation.workout
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fitlog.domain.model.DailyWorkout
@@ -8,7 +9,9 @@ import com.fitlog.domain.model.WorkoutRecord
 import com.fitlog.domain.model.WorkoutSet
 import com.fitlog.domain.repository.ExerciseRepository
 import com.fitlog.domain.repository.WorkoutRepository
+import com.fitlog.widget.FitLogWidget
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -35,7 +38,8 @@ data class DailyWorkoutUiState(
 @HiltViewModel
 class WorkoutViewModel @Inject constructor(
     private val workoutRepository: WorkoutRepository,
-    private val exerciseRepository: ExerciseRepository
+    private val exerciseRepository: ExerciseRepository,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DailyWorkoutUiState())
@@ -114,6 +118,7 @@ class WorkoutViewModel @Inject constructor(
             workoutRepository.saveWorkoutSet(defaultSet)
 
             refreshRecords(dailyWorkoutId)
+            FitLogWidget.updateWidget(context)
         }
     }
 
@@ -128,6 +133,7 @@ class WorkoutViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value.dailyWorkout?.id?.let { id ->
                 workoutRepository.deleteDailyWorkout(id)
+                FitLogWidget.updateWidget(context)
                 _uiState.update { it.copy(isDeleted = true) }
             }
         }
@@ -177,6 +183,7 @@ class WorkoutViewModel @Inject constructor(
                         memo = currentState.memo.ifBlank { null }
                     )
                 )
+                FitLogWidget.updateWidget(context)
             }
 
             _uiState.update { it.copy(isSaved = true) }
@@ -188,6 +195,7 @@ class WorkoutViewModel @Inject constructor(
             val currentDate = _uiState.value.date
             workoutRepository.copyDailyWorkout(sourceDailyWorkoutId, currentDate)
             loadWorkout(currentDate)
+            FitLogWidget.updateWidget(context)
         }
     }
 

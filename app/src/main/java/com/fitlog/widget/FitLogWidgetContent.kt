@@ -78,7 +78,7 @@ fun FitLogWidgetContent(
 
             // 요일 헤더
             Row(modifier = GlanceModifier.fillMaxWidth()) {
-                listOf("월", "화", "수", "목", "금", "토", "일").forEach { day ->
+                listOf("일", "월", "화", "수", "목", "금", "토").forEach { day ->
                     Box(
                         modifier = GlanceModifier.defaultWeight(),
                         contentAlignment = Alignment.Center

@@ -38,12 +38,15 @@ class FitLogWidget : GlanceAppWidget() {
                 val db = FitLogDatabase.getDatabase(context)
                 val today = LocalDate.now()
 
-                // 이번주 월요일 계산 (요일 헤더 "월화수목금토일"과 일치시키기 위함)
-                val thisMonday = today.with(java.time.DayOfWeek.MONDAY)
-                // 지난주 월요일부터 시작 (2주간 표시)
-                val startDate = thisMonday.minusWeeks(1)
-                // 이번주 일요일까지
-                val endDate = thisMonday.plusDays(6)
+                // 이번주 일요일 계산 (요일 헤더 "일월화수목금토"와 일치시키기 위함)
+                // Java DayOfWeek: 1=월 ~ 7=일
+                val dayOfWeek = today.dayOfWeek.value
+                val daysFromSunday = if (dayOfWeek == 7) 0 else dayOfWeek
+                val thisWeekSunday = today.minusDays(daysFromSunday.toLong())
+                // 지난주 일요일부터 시작 (2주간 표시)
+                val startDate = thisWeekSunday.minusWeeks(1)
+                // 이번주 토요일까지
+                val endDate = thisWeekSunday.plusDays(6)
 
                 val startMillis = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
                 val endMillis = endDate.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli() - 1
