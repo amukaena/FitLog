@@ -2,16 +2,27 @@
 
 ## 필수 제약사항
 
-### GitHub 계정 설정
-- **중요**: 이 프로젝트는 반드시 `amu7517@gmail.com` 계정의 GitHub에 업로드해야 함
-- 글로벌 설정(`amu7517@cubox.ai`)이 아닌 로컬 git config 사용 필수
-- git commit/push 전에 항상 로컬 user.email 설정 확인할 것
+### GitHub 저장소 정보
+- **저장소 URL**: https://github.com/amukaena/FitLog.git
+- **GitHub 계정**: amukaena (amu7517@gmail.com)
+- **주의**: 이 PC의 글로벌 Git 계정(amu7517@cubox.ai / LimByeongDo)과 다름
 
-### Git 로컬 설정
+### GitHub 계정 분리 설정
+이 PC는 여러 GitHub 계정을 저장소별로 분리 사용:
+```bash
+# 글로벌 설정 (이미 적용됨)
+git config --global credential.useHttpPath true
+```
+- 이 설정으로 저장소 URL별로 자격 증명이 분리 저장됨
+- FitLog → amukaena 계정
+- 다른 프로젝트 → LimByeongDo 계정
+
+### Git 로컬 설정 (이 저장소 전용)
 ```bash
 git config user.email "amu7517@gmail.com"
 git config user.name "amu7517"
 ```
+- commit/push 전에 `git config user.email` 로 확인 권장
 
 ## 프로젝트 개요
 - Android 운동 기록 앱 (Kotlin + Jetpack Compose)
