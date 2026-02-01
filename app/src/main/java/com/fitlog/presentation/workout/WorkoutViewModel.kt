@@ -28,7 +28,8 @@ data class DailyWorkoutUiState(
     val exercises: List<Exercise> = emptyList(),
     val recentWorkouts: List<DailyWorkout> = emptyList(),
     val isLoading: Boolean = false,
-    val isSaved: Boolean = false
+    val isSaved: Boolean = false,
+    val isDeleted: Boolean = false
 )
 
 @HiltViewModel
@@ -120,6 +121,15 @@ class WorkoutViewModel @Inject constructor(
         viewModelScope.launch {
             workoutRepository.deleteWorkoutRecord(recordId)
             _uiState.value.dailyWorkout?.id?.let { refreshRecords(it) }
+        }
+    }
+
+    fun deleteDailyWorkout() {
+        viewModelScope.launch {
+            _uiState.value.dailyWorkout?.id?.let { id ->
+                workoutRepository.deleteDailyWorkout(id)
+                _uiState.update { it.copy(isDeleted = true) }
+            }
         }
     }
 

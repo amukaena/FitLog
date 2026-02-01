@@ -30,6 +30,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.AlertDialog
 import com.fitlog.presentation.components.FitLogTopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -61,6 +62,7 @@ fun DailyWorkoutScreen(
     val uiState by viewModel.uiState.collectAsState()
     var showExerciseSheet by remember { mutableStateOf(false) }
     var showCopySheet by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(date) {
         viewModel.loadWorkout(date)
@@ -72,12 +74,27 @@ fun DailyWorkoutScreen(
         }
     }
 
+    LaunchedEffect(uiState.isDeleted) {
+        if (uiState.isDeleted) {
+            onNavigateBack()
+        }
+    }
+
     Scaffold(
         topBar = {
             FitLogTopAppBar(
                 title = "운동 기록",
                 onNavigateBack = onNavigateBack,
                 actions = {
+                    if (uiState.dailyWorkout != null) {
+                        IconButton(onClick = { showDeleteDialog = true }) {
+                            Icon(
+                                Icons.Default.Delete,
+                                contentDescription = "삭제",
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
                     TextButton(onClick = { viewModel.saveWorkout() }) {
                         Text("저장")
                     }
@@ -190,6 +207,29 @@ fun DailyWorkoutScreen(
             onWorkoutSelected = { workout ->
                 viewModel.copyFromPreviousWorkout(workout.id)
                 showCopySheet = false
+            }
+        )
+    }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("운동 기록 삭제") },
+            text = { Text("이 날의 운동 기록을 삭제하시겠습니까?\n모든 운동 및 세트 정보가 삭제됩니다.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.deleteDailyWorkout()
+                        showDeleteDialog = false
+                    }
+                ) {
+                    Text("삭제", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("취소")
+                }
             }
         )
     }
