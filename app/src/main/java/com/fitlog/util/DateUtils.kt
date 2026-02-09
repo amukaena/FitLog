@@ -78,4 +78,10 @@ object DateUtils {
             else -> formatDate(epochMillis, "M월 d일")
         }
     }
+
+    fun formatDateForAI(epochMillis: Long): String {
+        val localDate = epochMillisToLocalDate(epochMillis)
+        val formatter = DateTimeFormatter.ofPattern("yyyy년 M월 d일 (E)", koreanLocale)
+        return localDate.format(formatter)
+    }
 }

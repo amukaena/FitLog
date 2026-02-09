@@ -1,5 +1,7 @@
 package com.fitlog.presentation.workout
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,6 +11,7 @@ import com.fitlog.domain.model.WorkoutRecord
 import com.fitlog.domain.model.WorkoutSet
 import com.fitlog.domain.repository.ExerciseRepository
 import com.fitlog.domain.repository.WorkoutRepository
+import com.fitlog.util.WorkoutFormatter
 import com.fitlog.widget.FitLogWidget
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -207,5 +210,22 @@ class WorkoutViewModel @Inject constructor(
                 records = workout?.records ?: emptyList()
             )
         }
+    }
+
+    fun copyWorkoutForAI(): Boolean {
+        val currentState = _uiState.value
+        val workout = currentState.dailyWorkout?.copy(
+            title = currentState.title.ifBlank { "운동" },
+            memo = currentState.memo.ifBlank { null },
+            records = currentState.records
+        ) ?: return false
+
+        if (workout.records.isEmpty()) return false
+
+        val formattedText = WorkoutFormatter.formatForAI(workout)
+        val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clip = ClipData.newPlainText("운동 기록", formattedText)
+        clipboardManager.setPrimaryClip(clip)
+        return true
     }
 }

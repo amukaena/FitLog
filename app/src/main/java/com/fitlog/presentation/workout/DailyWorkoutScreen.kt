@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DragHandle
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -31,6 +32,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import com.fitlog.presentation.components.FitLogTopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -38,6 +42,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,6 +53,7 @@ import com.fitlog.domain.model.WorkoutRecord
 import com.fitlog.presentation.components.CopyWorkoutBottomSheet
 import com.fitlog.presentation.components.ExerciseSelectBottomSheet
 import com.fitlog.util.DateUtils
+import kotlinx.coroutines.launch
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
@@ -63,6 +69,8 @@ fun DailyWorkoutScreen(
     var showExerciseSheet by remember { mutableStateOf(false) }
     var showCopySheet by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(date) {
         viewModel.loadWorkout(date)
@@ -86,6 +94,24 @@ fun DailyWorkoutScreen(
                 title = "운동 기록",
                 onNavigateBack = onNavigateBack,
                 actions = {
+                    if (uiState.records.isNotEmpty()) {
+                        IconButton(
+                            onClick = {
+                                val success = viewModel.copyWorkoutForAI()
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        if (success) "운동 기록이 클립보드에 복사되었습니다"
+                                        else "복사할 운동 기록이 없습니다"
+                                    )
+                                }
+                            }
+                        ) {
+                            Icon(
+                                Icons.Default.Share,
+                                contentDescription = "AI 질문용 복사"
+                            )
+                        }
+                    }
                     if (uiState.dailyWorkout != null) {
                         IconButton(onClick = { showDeleteDialog = true }) {
                             Icon(
@@ -100,7 +126,8 @@ fun DailyWorkoutScreen(
                     }
                 }
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
         Column(
             modifier = Modifier

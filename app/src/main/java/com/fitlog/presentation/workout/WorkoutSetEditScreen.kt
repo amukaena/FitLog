@@ -31,6 +31,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
@@ -122,6 +125,13 @@ private fun SetEditCard(
     onDelete: () -> Unit,
     canDelete: Boolean
 ) {
+    var weightText by remember(set.id) {
+        mutableStateOf(if (set.weight == 0f) "" else set.weight.toString())
+    }
+    var repsText by remember(set.id) {
+        mutableStateOf(if (set.reps == 0) "" else set.reps.toString())
+    }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -158,10 +168,15 @@ private fun SetEditCard(
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 OutlinedTextField(
-                    value = if (set.weight == 0f) "" else set.weight.toString(),
+                    value = weightText,
                     onValueChange = { value ->
-                        val weight = value.toFloatOrNull() ?: 0f
-                        onWeightChange(weight)
+                        weightText = value
+                        val weight = value.toFloatOrNull()
+                        if (weight != null) {
+                            onWeightChange(weight)
+                        } else if (value.isEmpty()) {
+                            onWeightChange(0f)
+                        }
                     },
                     label = { Text("무게") },
                     suffix = { Text("kg") },
@@ -171,10 +186,15 @@ private fun SetEditCard(
                 )
 
                 OutlinedTextField(
-                    value = if (set.reps == 0) "" else set.reps.toString(),
+                    value = repsText,
                     onValueChange = { value ->
-                        val reps = value.toIntOrNull() ?: 0
-                        onRepsChange(reps)
+                        repsText = value
+                        val reps = value.toIntOrNull()
+                        if (reps != null) {
+                            onRepsChange(reps)
+                        } else if (value.isEmpty()) {
+                            onRepsChange(0)
+                        }
                     },
                     label = { Text("횟수") },
                     suffix = { Text("회") },
