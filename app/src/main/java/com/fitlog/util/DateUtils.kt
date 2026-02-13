@@ -8,10 +8,28 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.WeekFields
 import java.util.Locale
 
+val DAYS_OF_WEEK_KOREAN = listOf("일", "월", "화", "수", "목", "금", "토")
+
 object DateUtils {
     private val zoneId = ZoneId.systemDefault()
     private val koreanLocale = Locale.KOREAN
     private val weekFields = WeekFields.of(Locale.KOREAN)
+
+    /**
+     * Java DayOfWeek 값(1=월~7=일)을 한글 요일로 변환
+     */
+    fun getDayOfWeekKorean(dayOfWeek: Int): String {
+        return when (dayOfWeek) {
+            1 -> "월"
+            2 -> "화"
+            3 -> "수"
+            4 -> "목"
+            5 -> "금"
+            6 -> "토"
+            7 -> "일"
+            else -> ""
+        }
+    }
 
     fun localDateToEpochMillis(localDate: LocalDate): Long {
         return localDate.atStartOfDay(zoneId).toInstant().toEpochMilli()

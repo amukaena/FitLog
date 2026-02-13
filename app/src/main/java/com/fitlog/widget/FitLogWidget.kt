@@ -13,6 +13,7 @@ import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.updateAll
 import com.fitlog.MainActivity
 import com.fitlog.data.local.FitLogDatabase
+import com.fitlog.util.DateUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
@@ -69,7 +70,7 @@ class FitLogWidget : GlanceAppWidget() {
                     DayInfo(
                         date = dateMillis,
                         dayOfMonth = date.dayOfMonth,
-                        dayOfWeek = getDayOfWeekKorean(date.dayOfWeek.value),
+                        dayOfWeek = DateUtils.getDayOfWeekKorean(date.dayOfWeek.value),
                         hasWorkout = hasWorkout,
                         isToday = date == today
                     )
@@ -82,19 +83,6 @@ class FitLogWidget : GlanceAppWidget() {
             } catch (e: Exception) {
                 WidgetData(days = emptyList(), totalWorkoutDays = 0)
             }
-        }
-    }
-
-    private fun getDayOfWeekKorean(dayOfWeek: Int): String {
-        return when (dayOfWeek) {
-            1 -> "월"
-            2 -> "화"
-            3 -> "수"
-            4 -> "목"
-            5 -> "금"
-            6 -> "토"
-            7 -> "일"
-            else -> ""
         }
     }
 

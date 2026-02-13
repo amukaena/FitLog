@@ -51,8 +51,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fitlog.domain.model.WorkoutRecord
 import com.fitlog.presentation.components.CopyWorkoutBottomSheet
+import com.fitlog.presentation.components.Dimens
 import com.fitlog.presentation.components.ExerciseSelectBottomSheet
 import com.fitlog.util.DateUtils
+import com.fitlog.util.formatSummary
 import kotlinx.coroutines.launch
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -133,7 +135,7 @@ fun DailyWorkoutScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp)
+                .padding(Dimens.ScreenPadding)
         ) {
             Text(
                 text = DateUtils.formatDate(date),
@@ -141,7 +143,7 @@ fun DailyWorkoutScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(Dimens.SectionSpacing))
 
             OutlinedTextField(
                 value = uiState.title,
@@ -152,7 +154,7 @@ fun DailyWorkoutScreen(
                 singleLine = true
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(Dimens.ItemSpacing))
 
             OutlinedTextField(
                 value = uiState.memo,
@@ -163,7 +165,7 @@ fun DailyWorkoutScreen(
                 maxLines = 3
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(Dimens.SectionSpacing))
 
             val lazyListState = rememberLazyListState()
             val reorderableLazyListState = rememberReorderableLazyListState(lazyListState) { from, to ->
@@ -173,7 +175,7 @@ fun DailyWorkoutScreen(
             LazyColumn(
                 state = lazyListState,
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(Dimens.ItemSpacing)
             ) {
                 itemsIndexed(
                     items = uiState.records,
@@ -191,11 +193,11 @@ fun DailyWorkoutScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(Dimens.SectionSpacing))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(Dimens.ItemSpacing)
             ) {
                 Button(
                     onClick = { showExerciseSheet = true },
@@ -315,7 +317,7 @@ private fun WorkoutRecordEditCard(
                 )
                 if (record.sets.isNotEmpty()) {
                     Text(
-                        text = record.sets.joinToString(" / ") { "${it.weight}kg x ${it.reps}" },
+                        text = record.sets.formatSummary(),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

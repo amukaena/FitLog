@@ -16,23 +16,17 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -45,13 +39,17 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fitlog.domain.model.DailyWorkout
 import com.fitlog.domain.model.WorkoutRecord
+import com.fitlog.presentation.components.Dimens
+import com.fitlog.presentation.components.FitLogCard
+import com.fitlog.presentation.components.FitLogTopAppBar
 import com.fitlog.presentation.theme.CalendarSelected
 import com.fitlog.presentation.theme.CalendarToday
 import com.fitlog.presentation.theme.WorkoutMarker
+import com.fitlog.util.DAYS_OF_WEEK_KOREAN
 import com.fitlog.util.DateUtils
+import com.fitlog.util.formatSummary
 import java.time.LocalDate
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalendarScreen(
     onNavigateToWorkout: (Long) -> Unit,
@@ -66,16 +64,13 @@ fun CalendarScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("FitLog") },
+            FitLogTopAppBar(
+                title = "FitLog",
                 actions = {
                     IconButton(onClick = onNavigateToSettings) {
                         Icon(Icons.Default.Settings, contentDescription = "설정")
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
+                }
             )
         },
         floatingActionButton = {
@@ -107,7 +102,7 @@ fun CalendarScreen(
                 onDateSelected = viewModel::selectDate
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(Dimens.SectionSpacing))
 
             SelectedDateWorkout(
                 selectedDate = uiState.selectedDate,
@@ -128,7 +123,7 @@ private fun CalendarHeader(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = Dimens.ScreenPadding, vertical = Dimens.ItemSpacing),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -161,12 +156,12 @@ private fun CalendarGrid(
     workoutDates: Set<Long>,
     onDateSelected: (Long) -> Unit
 ) {
-    val daysOfWeek = listOf("일", "월", "화", "수", "목", "금", "토")
+    val daysOfWeek = DAYS_OF_WEEK_KOREAN
     val daysInMonth = DateUtils.getDaysInMonth(year, month)
     val firstDayOfWeek = DateUtils.getFirstDayOfWeekInMonth(year, month)
     val today = DateUtils.todayEpochMillis()
 
-    Column(modifier = Modifier.padding(horizontal = 8.dp)) {
+    Column(modifier = Modifier.padding(horizontal = Dimens.ItemSpacing)) {
         Row(modifier = Modifier.fillMaxWidth()) {
             daysOfWeek.forEach { day ->
                 Text(
@@ -179,7 +174,7 @@ private fun CalendarGrid(
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(Dimens.ItemSpacing))
 
         val totalCells = firstDayOfWeek + daysInMonth
         val rows = (totalCells + 6) / 7
@@ -265,7 +260,7 @@ private fun SelectedDateWorkout(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = Dimens.ScreenPadding)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -286,16 +281,13 @@ private fun SelectedDateWorkout(
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(Dimens.ItemSpacing))
 
         if (workout == null || workout.records.isEmpty()) {
-            Card(
+            FitLogCard(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable(onClick = onEditClick),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                )
+                    .clickable(onClick = onEditClick)
             ) {
                 Box(
                     modifier = Modifier
@@ -314,7 +306,7 @@ private fun SelectedDateWorkout(
         } else {
             LazyColumn(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(Dimens.ItemSpacing)
             ) {
                 items(workout.records) { record ->
                     WorkoutRecordCard(record = record)
@@ -326,14 +318,10 @@ private fun SelectedDateWorkout(
 
 @Composable
 private fun WorkoutRecordCard(record: WorkoutRecord) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
+    FitLogCard(
+        modifier = Modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(Dimens.ScreenPadding)) {
             Text(
                 text = record.exercise.name,
                 style = MaterialTheme.typography.titleSmall
@@ -347,7 +335,7 @@ private fun WorkoutRecordCard(record: WorkoutRecord) {
             if (record.sets.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = record.sets.joinToString(" / ") { "${it.weight}kg x ${it.reps}" },
+                    text = record.sets.formatSummary(),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

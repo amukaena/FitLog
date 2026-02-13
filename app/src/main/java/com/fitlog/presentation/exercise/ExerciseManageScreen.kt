@@ -10,13 +10,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -31,6 +28,8 @@ import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import com.fitlog.presentation.components.Dimens
+import com.fitlog.presentation.components.FitLogCard
 import com.fitlog.presentation.components.FitLogTopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -77,7 +76,7 @@ fun ExerciseManageScreen(
         ) {
             ScrollableTabRow(
                 selectedTabIndex = if (selectedIndex >= 0) selectedIndex else 0,
-                edgePadding = 16.dp
+                edgePadding = Dimens.ScreenPadding
             ) {
                 Tab(
                     selected = uiState.selectedCategory == null,
@@ -99,18 +98,18 @@ fun ExerciseManageScreen(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                    .padding(horizontal = Dimens.ScreenPadding),
+                verticalArrangement = Arrangement.spacedBy(Dimens.ItemSpacing)
             ) {
                 if (recentExercises.isNotEmpty()) {
                     item {
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(Dimens.SectionSpacing))
                         Text(
                             text = "최근 사용",
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(Dimens.ItemSpacing))
                     }
 
                     items(recentExercises) { exercise ->
@@ -125,13 +124,13 @@ fun ExerciseManageScreen(
 
                 if (otherExercises.isNotEmpty()) {
                     item {
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(Dimens.SectionSpacing))
                         Text(
                             text = if (recentExercises.isNotEmpty()) "기타 운동" else "운동 목록",
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(Dimens.ItemSpacing))
                     }
 
                     items(otherExercises) { exercise ->
@@ -152,7 +151,7 @@ fun ExerciseManageScreen(
     }
 
     if (showAddDialog) {
-        AddExerciseDialog(
+        ExerciseFormDialog(
             onDismiss = { showAddDialog = false },
             onConfirm = { name, category ->
                 viewModel.addExercise(name, category)
@@ -162,7 +161,7 @@ fun ExerciseManageScreen(
     }
 
     exerciseToEdit?.let { exercise ->
-        EditExerciseDialog(
+        ExerciseFormDialog(
             exercise = exercise,
             onDismiss = { exerciseToEdit = null },
             onConfirm = { newName, newCategory ->
@@ -178,17 +177,13 @@ private fun ExerciseCard(
     exercise: Exercise,
     onEditClick: (() -> Unit)? = null
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
+    FitLogCard(
+        modifier = Modifier.fillMaxWidth()
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(horizontal = Dimens.ScreenPadding, vertical = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -240,17 +235,25 @@ private fun ExerciseCard(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun AddExerciseDialog(
+private fun ExerciseFormDialog(
+    exercise: Exercise? = null,
     onDismiss: () -> Unit,
     onConfirm: (String, ExerciseCategory) -> Unit
 ) {
-    var name by remember { mutableStateOf("") }
-    var selectedCategory by remember { mutableStateOf(ExerciseCategory.CHEST) }
+    val isEditMode = exercise != null
+    var name by remember { mutableStateOf(exercise?.name ?: "") }
+    var selectedCategory by remember { mutableStateOf(exercise?.category ?: ExerciseCategory.CHEST) }
     var expanded by remember { mutableStateOf(false) }
+
+    val isConfirmEnabled = if (isEditMode) {
+        name.isNotBlank() && (name != exercise!!.name || selectedCategory != exercise.category)
+    } else {
+        name.isNotBlank()
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("새 운동 추가") },
+        title = { Text(if (isEditMode) "운동 수정" else "새 운동 추가") },
         text = {
             Column {
                 OutlinedTextField(
@@ -261,7 +264,7 @@ private fun AddExerciseDialog(
                     singleLine = true
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(Dimens.SectionSpacing))
 
                 ExposedDropdownMenuBox(
                     expanded = expanded,
@@ -298,85 +301,9 @@ private fun AddExerciseDialog(
         confirmButton = {
             TextButton(
                 onClick = { onConfirm(name, selectedCategory) },
-                enabled = name.isNotBlank()
+                enabled = isConfirmEnabled
             ) {
-                Text("추가")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("취소")
-            }
-        }
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun EditExerciseDialog(
-    exercise: Exercise,
-    onDismiss: () -> Unit,
-    onConfirm: (String, ExerciseCategory) -> Unit
-) {
-    var name by remember { mutableStateOf(exercise.name) }
-    var selectedCategory by remember { mutableStateOf(exercise.category) }
-    var expanded by remember { mutableStateOf(false) }
-
-    val hasChanges = name.isNotBlank() && (name != exercise.name || selectedCategory != exercise.category)
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("운동 수정") },
-        text = {
-            Column {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("운동 이름") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                ExposedDropdownMenuBox(
-                    expanded = expanded,
-                    onExpandedChange = { expanded = it }
-                ) {
-                    OutlinedTextField(
-                        value = selectedCategory.displayName,
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("카테고리") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor()
-                    )
-
-                    ExposedDropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false }
-                    ) {
-                        ExerciseCategory.entries.forEach { category ->
-                            DropdownMenuItem(
-                                text = { Text(category.displayName) },
-                                onClick = {
-                                    selectedCategory = category
-                                    expanded = false
-                                }
-                            )
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = { onConfirm(name, selectedCategory) },
-                enabled = hasChanges
-            ) {
-                Text("수정")
+                Text(if (isEditMode) "수정" else "추가")
             }
         },
         dismissButton = {

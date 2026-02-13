@@ -1,6 +1,19 @@
 package com.fitlog.util
 
 import com.fitlog.domain.model.DailyWorkout
+import com.fitlog.domain.model.WorkoutSet
+
+fun WorkoutSet.formatDisplay(): String = "${formatWeight(weight)}kg x $reps"
+
+fun List<WorkoutSet>.formatSummary(): String = joinToString(" / ") { it.formatDisplay() }
+
+private fun formatWeight(weight: Float): String {
+    return if (weight == weight.toLong().toFloat()) {
+        weight.toLong().toString()
+    } else {
+        weight.toString()
+    }
+}
 
 object WorkoutFormatter {
 
@@ -60,13 +73,7 @@ object WorkoutFormatter {
         return sb.toString()
     }
 
-    private fun formatWeight(weight: Float): String {
-        return if (weight == weight.toLong().toFloat()) {
-            weight.toLong().toString()
-        } else {
-            weight.toString()
-        }
-    }
+    private fun formatWeight(weight: Float): String = com.fitlog.util.formatWeight(weight)
 
     private fun formatVolume(volume: Double): String {
         return if (volume == volume.toLong().toDouble()) {

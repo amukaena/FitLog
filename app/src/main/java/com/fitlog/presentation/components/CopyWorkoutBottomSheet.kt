@@ -8,9 +8,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -40,7 +37,7 @@ fun CopyWorkoutBottomSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = Dimens.ScreenPadding)
                 .padding(bottom = 32.dp)
         ) {
             Text(
@@ -48,7 +45,7 @@ fun CopyWorkoutBottomSheet(
                 style = MaterialTheme.typography.titleLarge
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(Dimens.ItemSpacing))
 
             Text(
                 text = "최근 운동 기록에서 선택하세요",
@@ -56,7 +53,7 @@ fun CopyWorkoutBottomSheet(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(Dimens.SectionSpacing))
 
             if (recentWorkouts.isEmpty()) {
                 Text(
@@ -77,7 +74,7 @@ fun CopyWorkoutBottomSheet(
                             workout = workout,
                             onClick = { onWorkoutSelected(workout) }
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(Dimens.ItemSpacing))
                     }
                 }
             }
@@ -90,16 +87,12 @@ private fun RecentWorkoutCard(
     workout: DailyWorkout,
     onClick: () -> Unit
 ) {
-    Card(
+    FitLogCard(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
+            .clickable(onClick = onClick)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(Dimens.ScreenPadding)) {
             Text(
                 text = DateUtils.formatDateWithDayOfWeek(workout.date),
                 style = MaterialTheme.typography.titleSmall
