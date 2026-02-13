@@ -165,8 +165,8 @@ fun ExerciseManageScreen(
         EditExerciseDialog(
             exercise = exercise,
             onDismiss = { exerciseToEdit = null },
-            onConfirm = { newName ->
-                viewModel.updateExerciseName(exercise, newName)
+            onConfirm = { newName, newCategory ->
+                viewModel.updateExercise(exercise, newName, newCategory)
                 exerciseToEdit = null
             }
         )
@@ -311,30 +311,70 @@ private fun AddExerciseDialog(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun EditExerciseDialog(
     exercise: Exercise,
     onDismiss: () -> Unit,
-    onConfirm: (String) -> Unit
+    onConfirm: (String, ExerciseCategory) -> Unit
 ) {
     var name by remember { mutableStateOf(exercise.name) }
+    var selectedCategory by remember { mutableStateOf(exercise.category) }
+    var expanded by remember { mutableStateOf(false) }
+
+    val hasChanges = name.isNotBlank() && (name != exercise.name || selectedCategory != exercise.category)
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("운동 이름 수정") },
+        title = { Text("운동 수정") },
         text = {
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("운동 이름") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
+            Column {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("운동 이름") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                ExposedDropdownMenuBox(
+                    expanded = expanded,
+                    onExpandedChange = { expanded = it }
+                ) {
+                    OutlinedTextField(
+                        value = selectedCategory.displayName,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("카테고리") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor()
+                    )
+
+                    ExposedDropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        ExerciseCategory.entries.forEach { category ->
+                            DropdownMenuItem(
+                                text = { Text(category.displayName) },
+                                onClick = {
+                                    selectedCategory = category
+                                    expanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+            }
         },
         confirmButton = {
             TextButton(
-                onClick = { onConfirm(name) },
-                enabled = name.isNotBlank() && name != exercise.name
+                onClick = { onConfirm(name, selectedCategory) },
+                enabled = hasChanges
             ) {
                 Text("수정")
             }

@@ -69,10 +69,12 @@ class ExerciseViewModel @Inject constructor(
         }
     }
 
-    fun updateExerciseName(exercise: Exercise, newName: String) {
+    fun updateExercise(exercise: Exercise, newName: String, newCategory: ExerciseCategory) {
         viewModelScope.launch {
             if (exercise.isCustom) {
-                exerciseRepository.updateExercise(exercise.copy(name = newName))
+                exerciseRepository.updateExercise(
+                    exercise.copy(name = newName, category = newCategory)
+                )
             }
         }
     }
