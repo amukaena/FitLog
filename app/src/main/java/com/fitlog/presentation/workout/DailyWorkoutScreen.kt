@@ -32,6 +32,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -53,7 +54,10 @@ import com.fitlog.domain.model.WorkoutRecord
 import com.fitlog.presentation.components.CopyWorkoutBottomSheet
 import com.fitlog.presentation.components.Dimens
 import com.fitlog.presentation.components.ExerciseSelectBottomSheet
+import com.fitlog.util.CategoryVolume
 import com.fitlog.util.DateUtils
+import com.fitlog.util.WorkoutFormatter
+import com.fitlog.util.calculateCategoryVolumes
 import com.fitlog.util.formatSummary
 import kotlinx.coroutines.launch
 import sh.calvin.reorderable.ReorderableItem
@@ -166,6 +170,21 @@ fun DailyWorkoutScreen(
             )
 
             Spacer(modifier = Modifier.height(Dimens.SectionSpacing))
+
+            // 부위별 볼륨 요약
+            val categoryVolumes = remember(uiState.records) {
+                calculateCategoryVolumes(uiState.records)
+            }
+            val totalVolume = remember(categoryVolumes) {
+                categoryVolumes.sumOf { it.volume }
+            }
+            if (totalVolume > 0) {
+                VolumeSummarySection(
+                    categoryVolumes = categoryVolumes,
+                    totalVolume = totalVolume
+                )
+                Spacer(modifier = Modifier.height(Dimens.SectionSpacing))
+            }
 
             val lazyListState = rememberLazyListState()
             val reorderableLazyListState = rememberReorderableLazyListState(lazyListState) { from, to ->
@@ -335,6 +354,85 @@ private fun WorkoutRecordEditCard(
                         tint = MaterialTheme.colorScheme.error
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun VolumeSummarySection(
+    categoryVolumes: List<CategoryVolume>,
+    totalVolume: Double
+) {
+    Card(
+        shape = RoundedCornerShape(Dimens.CardCornerRadius),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Column(modifier = Modifier.padding(Dimens.ScreenPadding)) {
+            Text(
+                text = "부위별 볼륨",
+                style = MaterialTheme.typography.titleSmall
+            )
+            Spacer(modifier = Modifier.height(Dimens.ItemSpacing))
+
+            categoryVolumes.forEach { cv ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 2.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = cv.category.displayName,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Text(
+                        text = "${WorkoutFormatter.formatVolume(cv.volume)}kg",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.weight(1f),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.End
+                    )
+                    Text(
+                        text = "${cv.setCount}세트",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.weight(0.6f),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.End
+                    )
+                }
+            }
+
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 4.dp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
+            )
+
+            val totalSets = categoryVolumes.sumOf { it.setCount }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "합계",
+                    style = MaterialTheme.typography.titleSmall,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    text = "${WorkoutFormatter.formatVolume(totalVolume)}kg",
+                    style = MaterialTheme.typography.titleSmall,
+                    modifier = Modifier.weight(1f),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.End
+                )
+                Text(
+                    text = "${totalSets}세트",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(0.6f),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.End
+                )
             }
         }
     }

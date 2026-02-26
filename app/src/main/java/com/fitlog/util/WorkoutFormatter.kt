@@ -1,7 +1,31 @@
 package com.fitlog.util
 
 import com.fitlog.domain.model.DailyWorkout
+import com.fitlog.domain.model.ExerciseCategory
+import com.fitlog.domain.model.WorkoutRecord
 import com.fitlog.domain.model.WorkoutSet
+
+data class CategoryVolume(
+    val category: ExerciseCategory,
+    val volume: Double,
+    val setCount: Int,
+    val exerciseCount: Int
+)
+
+fun calculateCategoryVolumes(records: List<WorkoutRecord>): List<CategoryVolume> {
+    return records.groupBy { it.exercise.category }
+        .map { (category, categoryRecords) ->
+            CategoryVolume(
+                category = category,
+                volume = categoryRecords.sumOf { record ->
+                    record.sets.sumOf { set -> (set.weight * set.reps).toDouble() }
+                },
+                setCount = categoryRecords.sumOf { it.sets.size },
+                exerciseCount = categoryRecords.size
+            )
+        }
+        .sortedByDescending { it.volume }
+}
 
 fun WorkoutSet.formatDisplay(): String = "${formatWeight(weight)}kg x $reps"
 
@@ -75,7 +99,7 @@ object WorkoutFormatter {
 
     private fun formatWeight(weight: Float): String = com.fitlog.util.formatWeight(weight)
 
-    private fun formatVolume(volume: Double): String {
+    fun formatVolume(volume: Double): String {
         return if (volume == volume.toLong().toDouble()) {
             String.format("%,d", volume.toLong())
         } else {
