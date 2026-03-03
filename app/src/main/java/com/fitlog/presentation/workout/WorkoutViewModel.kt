@@ -33,6 +33,7 @@ data class DailyWorkoutUiState(
     val records: List<WorkoutRecord> = emptyList(),
     val exercises: List<Exercise> = emptyList(),
     val recentWorkouts: List<DailyWorkout> = emptyList(),
+    val exerciseRecentSummaries: Map<Long, String> = emptyMap(),
     val isLoading: Boolean = false,
     val isSaved: Boolean = false,
     val isDeleted: Boolean = false
@@ -70,6 +71,11 @@ class WorkoutViewModel @Inject constructor(
             exerciseRepository.getAllExercises().collect { exercises ->
                 _uiState.update { it.copy(exercises = exercises) }
             }
+        }
+
+        viewModelScope.launch {
+            val summaries = workoutRepository.getExerciseRecentSummaries()
+            _uiState.update { it.copy(exerciseRecentSummaries = summaries) }
         }
 
         viewModelScope.launch {

@@ -12,6 +12,8 @@ import com.fitlog.domain.model.DailyWorkout
 import com.fitlog.domain.model.WorkoutRecord
 import com.fitlog.domain.model.WorkoutSet
 import com.fitlog.domain.repository.WorkoutRepository
+import com.fitlog.util.DateUtils
+import com.fitlog.util.formatCompact
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -152,5 +154,17 @@ class WorkoutRepositoryImpl @Inject constructor(
         workoutSetDao.deleteAll()
         workoutRecordDao.deleteAll()
         dailyWorkoutDao.deleteAll()
+    }
+
+    override suspend fun getExerciseRecentSummaries(): Map<Long, String> {
+        val latestRecords = workoutRecordDao.getLatestRecordForAllExercises()
+        if (latestRecords.isEmpty()) return emptyMap()
+
+        return latestRecords.associate { record ->
+            val sets = workoutSetDao.getSetsByRecordIdSync(record.recordId).map { it.toDomain() }
+            val dateStr = DateUtils.formatDate(record.date, "M/d")
+            val setsStr = sets.formatCompact()
+            record.exerciseId to "$dateStr $setsStr"
+        }
     }
 }

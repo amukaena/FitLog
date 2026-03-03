@@ -29,4 +29,6 @@ interface WorkoutRepository {
     suspend fun copyDailyWorkout(sourceDailyWorkoutId: Long, targetDate: Long): Long
 
     suspend fun clearAllData()
+
+    suspend fun getExerciseRecentSummaries(): Map<Long, String>
 }

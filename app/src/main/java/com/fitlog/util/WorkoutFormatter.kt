@@ -31,6 +31,8 @@ fun WorkoutSet.formatDisplay(): String = "${formatWeight(weight)}kg x $reps"
 
 fun List<WorkoutSet>.formatSummary(): String = joinToString(" / ") { it.formatDisplay() }
 
+fun List<WorkoutSet>.formatCompact(): String = joinToString("/") { "${formatWeight(it.weight)}:${it.reps}" }
+
 private fun formatWeight(weight: Float): String {
     return if (weight == weight.toLong().toFloat()) {
         weight.toLong().toString()

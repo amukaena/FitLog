@@ -36,6 +36,7 @@ import com.fitlog.domain.model.ExerciseCategory
 @Composable
 fun ExerciseSelectBottomSheet(
     exercises: List<Exercise>,
+    recentSummaries: Map<Long, String> = emptyMap(),
     onDismiss: () -> Unit,
     onExerciseSelected: (Exercise) -> Unit
 ) {
@@ -102,9 +103,20 @@ fun ExerciseSelectBottomSheet(
                 modifier = Modifier.height(400.dp)
             ) {
                 items(filteredExercises) { exercise ->
+                    val summary = recentSummaries[exercise.id]
                     ListItem(
                         headlineContent = { Text(exercise.name) },
-                        supportingContent = { Text(exercise.category.displayName) },
+                        supportingContent = {
+                            if (summary != null) {
+                                Text(
+                                    text = "${exercise.category.displayName} · $summary",
+                                    maxLines = 1,
+                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                                )
+                            } else {
+                                Text(exercise.category.displayName)
+                            }
+                        },
                         modifier = Modifier.clickable { onExerciseSelected(exercise) }
                     )
                     HorizontalDivider()

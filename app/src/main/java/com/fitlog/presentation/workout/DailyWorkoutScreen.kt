@@ -240,6 +240,7 @@ fun DailyWorkoutScreen(
     if (showExerciseSheet) {
         ExerciseSelectBottomSheet(
             exercises = uiState.exercises,
+            recentSummaries = uiState.exerciseRecentSummaries,
             onDismiss = { showExerciseSheet = false },
             onExerciseSelected = { exercise ->
                 viewModel.addExercise(exercise)
