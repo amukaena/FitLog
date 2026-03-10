@@ -5,6 +5,7 @@ import androidx.room.RoomDatabase
 import com.fitlog.data.local.dao.DailyWorkoutDao
 import com.fitlog.data.local.dao.ExerciseDao
 import com.fitlog.data.local.dao.WorkoutRecordDao
+import com.fitlog.data.local.dao.StatsDao
 import com.fitlog.data.local.dao.WorkoutSetDao
 import com.fitlog.data.local.entity.DailyWorkoutEntity
 import com.fitlog.data.local.entity.ExerciseEntity
@@ -26,6 +27,7 @@ abstract class FitLogDatabase : RoomDatabase() {
     abstract fun dailyWorkoutDao(): DailyWorkoutDao
     abstract fun workoutRecordDao(): WorkoutRecordDao
     abstract fun workoutSetDao(): WorkoutSetDao
+    abstract fun statsDao(): StatsDao
 
     companion object {
         const val DATABASE_NAME = "fitlog_database"

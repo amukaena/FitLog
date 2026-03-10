@@ -11,6 +11,7 @@ import com.fitlog.presentation.calendar.CalendarScreen
 import com.fitlog.presentation.exercise.ExerciseManageScreen
 import com.fitlog.presentation.settings.GoogleDriveBackupScreen
 import com.fitlog.presentation.settings.SettingsScreen
+import com.fitlog.presentation.stats.ExerciseStatsScreen
 import com.fitlog.presentation.workout.DailyWorkoutScreen
 import com.fitlog.presentation.workout.WorkoutSetEditScreen
 
@@ -29,7 +30,16 @@ fun FitLogNavHost(
                 },
                 onNavigateToSettings = {
                     navController.navigate(Screen.Settings.route)
+                },
+                onNavigateToStats = {
+                    navController.navigate(Screen.ExerciseStats.route)
                 }
+            )
+        }
+
+        composable(Screen.ExerciseStats.route) {
+            ExerciseStatsScreen(
+                onBack = { navController.popBackStack() }
             )
         }
 

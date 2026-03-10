@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -54,6 +55,7 @@ import java.time.LocalDate
 fun CalendarScreen(
     onNavigateToWorkout: (Long) -> Unit,
     onNavigateToSettings: () -> Unit,
+    onNavigateToStats: () -> Unit,
     viewModel: CalendarViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -67,6 +69,9 @@ fun CalendarScreen(
             FitLogTopAppBar(
                 title = "FitLog",
                 actions = {
+                    IconButton(onClick = onNavigateToStats) {
+                        Icon(Icons.Default.BarChart, contentDescription = "통계")
+                    }
                     IconButton(onClick = onNavigateToSettings) {
                         Icon(Icons.Default.Settings, contentDescription = "설정")
                     }

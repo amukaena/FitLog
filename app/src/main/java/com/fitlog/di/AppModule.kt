@@ -6,6 +6,7 @@ import com.fitlog.data.local.FitLogDatabase
 import com.fitlog.data.local.dao.DailyWorkoutDao
 import com.fitlog.data.local.dao.ExerciseDao
 import com.fitlog.data.local.dao.WorkoutRecordDao
+import com.fitlog.data.local.dao.StatsDao
 import com.fitlog.data.local.dao.WorkoutSetDao
 import dagger.Module
 import dagger.Provides
@@ -52,5 +53,11 @@ object AppModule {
     @Singleton
     fun provideWorkoutSetDao(database: FitLogDatabase): WorkoutSetDao {
         return database.workoutSetDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideStatsDao(database: FitLogDatabase): StatsDao {
+        return database.statsDao()
     }
 }

@@ -11,4 +11,5 @@ sealed class Screen(val route: String) {
     object ExerciseManage : Screen("exercise_manage")
     object Settings : Screen("settings")
     object GoogleDriveBackup : Screen("google_drive_backup")
+    object ExerciseStats : Screen("exercise_stats")
 }
