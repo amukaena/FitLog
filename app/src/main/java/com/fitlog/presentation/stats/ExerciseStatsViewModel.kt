@@ -39,13 +39,19 @@ data class ExerciseStatsSummary(
 
 data class ExerciseStatsUiState(
     val exercises: List<Exercise> = emptyList(),
+    val selectedCategory: com.fitlog.domain.model.ExerciseCategory? = null,
     val selectedExercise: Exercise? = null,
     val selectedPeriod: StatsPeriod = StatsPeriod.WEEKS_8,
     val selectedTab: StatsTab = StatsTab.MAX_WEIGHT,
     val chartData: List<ExerciseDateStat> = emptyList(),
     val summary: ExerciseStatsSummary = ExerciseStatsSummary(),
     val isLoading: Boolean = false
-)
+) {
+    val filteredExercises: List<Exercise>
+        get() = selectedCategory?.let { cat ->
+            exercises.filter { it.category == cat }
+        } ?: exercises
+}
 
 @HiltViewModel
 class ExerciseStatsViewModel @Inject constructor(
@@ -67,6 +73,23 @@ class ExerciseStatsViewModel @Inject constructor(
             if (exercises.isNotEmpty() && _uiState.value.selectedExercise == null) {
                 selectExercise(exercises.first())
             }
+        }
+    }
+
+    fun selectCategory(category: com.fitlog.domain.model.ExerciseCategory?) {
+        _uiState.update { state ->
+            val newState = state.copy(selectedCategory = category)
+            // 현재 선택된 운동이 필터에 포함되지 않으면 필터된 목록의 첫 번째로 변경
+            val filtered = newState.filteredExercises
+            if (state.selectedExercise != null && !filtered.contains(state.selectedExercise)) {
+                newState.copy(selectedExercise = filtered.firstOrNull())
+            } else {
+                newState
+            }
+        }
+        // 선택된 운동이 변경되었을 수 있으므로 통계 다시 로드
+        if (_uiState.value.selectedExercise != null) {
+            loadStats()
         }
     }
 

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -45,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fitlog.data.local.dao.ExerciseDateStat
+import com.fitlog.domain.model.ExerciseCategory
 import com.fitlog.presentation.components.FitLogCard
 import com.fitlog.presentation.components.FitLogTopAppBar
 import com.fitlog.util.DateUtils
@@ -75,9 +77,17 @@ fun ExerciseStatsScreen(
         ) {
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Category filter
+            CategoryFilterRow(
+                selectedCategory = uiState.selectedCategory,
+                onCategorySelected = viewModel::selectCategory
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
             // Exercise dropdown
             ExerciseDropdown(
-                exercises = uiState.exercises,
+                exercises = uiState.filteredExercises,
                 selectedExercise = uiState.selectedExercise,
                 onExerciseSelected = viewModel::selectExercise
             )
@@ -134,6 +144,32 @@ fun ExerciseStatsScreen(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
+        }
+    }
+}
+
+@Composable
+private fun CategoryFilterRow(
+    selectedCategory: ExerciseCategory?,
+    onCategorySelected: (ExerciseCategory?) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        FilterChip(
+            selected = selectedCategory == null,
+            onClick = { onCategorySelected(null) },
+            label = { Text("전체") }
+        )
+        ExerciseCategory.entries.forEach { category ->
+            FilterChip(
+                selected = category == selectedCategory,
+                onClick = { onCategorySelected(category) },
+                label = { Text(category.displayName) }
+            )
         }
     }
 }
