@@ -1,8 +1,6 @@
 package com.fitlog.data.local
 
-import android.content.Context
 import androidx.room.Database
-import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.fitlog.data.local.dao.DailyWorkoutDao
 import com.fitlog.data.local.dao.ExerciseDao
@@ -31,20 +29,5 @@ abstract class FitLogDatabase : RoomDatabase() {
 
     companion object {
         const val DATABASE_NAME = "fitlog_database"
-
-        @Volatile
-        private var INSTANCE: FitLogDatabase? = null
-
-        fun getDatabase(context: Context): FitLogDatabase {
-            return INSTANCE ?: synchronized(this) {
-                val instance = Room.databaseBuilder(
-                    context.applicationContext,
-                    FitLogDatabase::class.java,
-                    DATABASE_NAME
-                ).build()
-                INSTANCE = instance
-                instance
-            }
-        }
     }
 }

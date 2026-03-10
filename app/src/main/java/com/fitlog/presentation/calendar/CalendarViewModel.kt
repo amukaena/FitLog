@@ -3,10 +3,10 @@ package com.fitlog.presentation.calendar
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fitlog.domain.model.DailyWorkout
-import com.fitlog.domain.repository.ExerciseRepository
 import com.fitlog.domain.repository.WorkoutRepository
 import com.fitlog.util.DateUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,23 +26,18 @@ data class CalendarUiState(
 
 @HiltViewModel
 class CalendarViewModel @Inject constructor(
-    private val workoutRepository: WorkoutRepository,
-    private val exerciseRepository: ExerciseRepository
+    private val workoutRepository: WorkoutRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CalendarUiState())
     val uiState: StateFlow<CalendarUiState> = _uiState.asStateFlow()
 
+    private var monthDataJob: Job? = null
+    private var selectedDayJob: Job? = null
+
     init {
-        initializeDefaultExercises()
         loadMonthData()
         loadSelectedDayWorkout()
-    }
-
-    private fun initializeDefaultExercises() {
-        viewModelScope.launch {
-            exerciseRepository.initializeDefaultExercises()
-        }
     }
 
     fun selectDate(date: Long) {
@@ -69,7 +64,8 @@ class CalendarViewModel @Inject constructor(
     }
 
     private fun loadMonthData() {
-        viewModelScope.launch {
+        monthDataJob?.cancel()
+        monthDataJob = viewModelScope.launch {
             val (startDate, endDate) = DateUtils.getMonthStartAndEnd(
                 _uiState.value.currentYear,
                 _uiState.value.currentMonth
@@ -82,7 +78,8 @@ class CalendarViewModel @Inject constructor(
     }
 
     private fun loadSelectedDayWorkout() {
-        viewModelScope.launch {
+        selectedDayJob?.cancel()
+        selectedDayJob = viewModelScope.launch {
             workoutRepository.getDailyWorkoutByDate(_uiState.value.selectedDate).collect { workout ->
                 _uiState.update { it.copy(selectedDayWorkout = workout) }
             }

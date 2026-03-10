@@ -76,14 +76,12 @@ class WorkoutSetViewModel @Inject constructor(
     fun deleteSet(setId: Long) {
         viewModelScope.launch {
             workoutRepository.deleteWorkoutSet(setId)
-            _uiState.update { state ->
-                val remainingSets = state.sets.filter { it.id != setId }
-                val reorderedSets = remainingSets.mapIndexed { index, set ->
-                    set.copy(setNumber = index + 1)
-                }
-                reorderedSets.forEach { workoutRepository.updateWorkoutSet(it) }
-                state.copy(sets = reorderedSets)
+            val remainingSets = _uiState.value.sets.filter { it.id != setId }
+            val reorderedSets = remainingSets.mapIndexed { index, set ->
+                set.copy(setNumber = index + 1)
             }
+            reorderedSets.forEach { workoutRepository.updateWorkoutSet(it) }
+            _uiState.update { it.copy(sets = reorderedSets) }
         }
     }
 

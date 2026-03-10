@@ -1,7 +1,5 @@
 package com.fitlog.presentation.workout
 
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -11,6 +9,7 @@ import com.fitlog.domain.model.WorkoutRecord
 import com.fitlog.domain.model.WorkoutSet
 import com.fitlog.domain.repository.ExerciseRepository
 import com.fitlog.domain.repository.WorkoutRepository
+import com.fitlog.util.ClipboardHelper
 import com.fitlog.util.WorkoutFormatter
 import com.fitlog.widget.FitLogWidget
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,7 +17,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -43,11 +41,15 @@ data class DailyWorkoutUiState(
 class WorkoutViewModel @Inject constructor(
     private val workoutRepository: WorkoutRepository,
     private val exerciseRepository: ExerciseRepository,
+    private val clipboardHelper: ClipboardHelper,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DailyWorkoutUiState())
     val uiState: StateFlow<DailyWorkoutUiState> = _uiState.asStateFlow()
+
+    private var exercisesJob: Job? = null
+    private var recentWorkoutsJob: Job? = null
 
     fun loadWorkout(date: Long) {
         _uiState.update { it.copy(date = date, isLoading = true) }
@@ -67,7 +69,10 @@ class WorkoutViewModel @Inject constructor(
             } else {
                 _uiState.update { it.copy(isLoading = false) }
             }
+        }
 
+        exercisesJob?.cancel()
+        exercisesJob = viewModelScope.launch {
             exerciseRepository.getAllExercises().collect { exercises ->
                 _uiState.update { it.copy(exercises = exercises) }
             }
@@ -78,7 +83,8 @@ class WorkoutViewModel @Inject constructor(
             _uiState.update { it.copy(exerciseRecentSummaries = summaries) }
         }
 
-        viewModelScope.launch {
+        recentWorkoutsJob?.cancel()
+        recentWorkoutsJob = viewModelScope.launch {
             workoutRepository.getRecentDailyWorkouts(10).collect { recent ->
                 _uiState.update { it.copy(recentWorkouts = recent.filter { w -> w.date != date }) }
             }
@@ -171,7 +177,7 @@ class WorkoutViewModel @Inject constructor(
         }
     }
 
-    fun updateRecordOrder(records: List<WorkoutRecord>) {
+    private fun updateRecordOrder(records: List<WorkoutRecord>) {
         viewModelScope.launch {
             records.forEachIndexed { index, record ->
                 workoutRepository.updateWorkoutRecord(record.copy(order = index))
@@ -229,9 +235,7 @@ class WorkoutViewModel @Inject constructor(
         if (workout.records.isEmpty()) return false
 
         val formattedText = WorkoutFormatter.formatForAI(workout)
-        val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        val clip = ClipData.newPlainText("운동 기록", formattedText)
-        clipboardManager.setPrimaryClip(clip)
+        clipboardHelper.copyToClipboard("운동 기록", formattedText)
         return true
     }
 }

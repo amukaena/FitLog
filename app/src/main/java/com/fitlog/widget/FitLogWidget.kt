@@ -1,26 +1,30 @@
 package com.fitlog.widget
 
 import android.content.Context
-import android.content.Intent
 import androidx.glance.GlanceId
-import androidx.glance.GlanceModifier
-import androidx.glance.action.ActionParameters
 import androidx.glance.action.actionStartActivity
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.provideContent
-import androidx.glance.appwidget.action.ActionCallback
-import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.updateAll
 import com.fitlog.MainActivity
-import com.fitlog.data.local.FitLogDatabase
+import com.fitlog.data.local.dao.DailyWorkoutDao
 import com.fitlog.util.DateUtils
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.EntryPoints
+import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.ZoneId
-import java.time.temporal.ChronoUnit
 
 class FitLogWidget : GlanceAppWidget() {
+
+    @EntryPoint
+    @InstallIn(SingletonComponent::class)
+    interface WidgetEntryPoint {
+        fun dailyWorkoutDao(): DailyWorkoutDao
+    }
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val widgetData = loadWidgetData(context)
@@ -36,7 +40,8 @@ class FitLogWidget : GlanceAppWidget() {
     private suspend fun loadWidgetData(context: Context): WidgetData {
         return withContext(Dispatchers.IO) {
             try {
-                val db = FitLogDatabase.getDatabase(context)
+                val entryPoint = EntryPoints.get(context.applicationContext, WidgetEntryPoint::class.java)
+                val dailyWorkoutDao = entryPoint.dailyWorkoutDao()
                 val today = LocalDate.now()
 
                 // 이번주 일요일 계산 (요일 헤더 "일월화수목금토"와 일치시키기 위함)
@@ -52,7 +57,7 @@ class FitLogWidget : GlanceAppWidget() {
                 val startMillis = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
                 val endMillis = endDate.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli() - 1
 
-                val workoutDates = db.dailyWorkoutDao().getWorkoutDatesInRangeSync(startMillis, endMillis).toSet()
+                val workoutDates = dailyWorkoutDao.getWorkoutDatesInRangeSync(startMillis, endMillis).toSet()
 
                 // 2주간 날짜 목록 생성
                 val days = (0..13).map { daysAgo ->

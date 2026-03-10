@@ -36,6 +36,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import com.fitlog.presentation.components.FitLogCard
 import com.fitlog.presentation.components.FitLogTopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -365,12 +366,7 @@ private fun VolumeSummarySection(
     categoryVolumes: List<CategoryVolume>,
     totalVolume: Double
 ) {
-    Card(
-        shape = RoundedCornerShape(Dimens.CardCornerRadius),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
-    ) {
+    FitLogCard {
         Column(modifier = Modifier.padding(Dimens.ScreenPadding)) {
             Text(
                 text = "부위별 볼륨",

@@ -6,6 +6,7 @@ import com.fitlog.domain.model.Exercise
 import com.fitlog.domain.model.ExerciseCategory
 import com.fitlog.domain.repository.ExerciseRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,12 +28,15 @@ class ExerciseViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(ExerciseManageUiState())
     val uiState: StateFlow<ExerciseManageUiState> = _uiState.asStateFlow()
 
+    private var loadExercisesJob: Job? = null
+
     init {
         loadExercises()
     }
 
     private fun loadExercises() {
-        viewModelScope.launch {
+        loadExercisesJob?.cancel()
+        loadExercisesJob = viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
 
             val category = _uiState.value.selectedCategory
