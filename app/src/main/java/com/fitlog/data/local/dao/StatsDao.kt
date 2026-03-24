@@ -57,8 +57,12 @@ interface StatsDao {
         JOIN workout_records wr ON ws.workoutRecordId = wr.id
         JOIN daily_workouts dw ON wr.dailyWorkoutId = dw.id
         WHERE wr.exerciseId = :exerciseId
-        ORDER BY dw.date DESC
-        LIMIT 1
+          AND dw.date = (
+            SELECT MAX(dw2.date)
+            FROM daily_workouts dw2
+            JOIN workout_records wr2 ON wr2.dailyWorkoutId = dw2.id
+            WHERE wr2.exerciseId = :exerciseId
+          )
     """)
     suspend fun getExerciseLatestMaxWeight(exerciseId: Long): Float?
 

@@ -36,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -45,7 +46,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.fitlog.data.local.dao.ExerciseDateStat
+import com.fitlog.domain.model.ExerciseDateStat
 import com.fitlog.domain.model.ExerciseCategory
 import com.fitlog.presentation.components.FitLogCard
 import com.fitlog.presentation.components.FitLogTopAppBar
@@ -378,7 +379,7 @@ private fun DrawScope.drawYLabel(
     }
     val text = formatter.format(value)
     val paint = android.graphics.Paint().apply {
-        this.color = color.hashCode()
+        this.color = color.toArgb()
         this.textSize = textSize
         textAlign = android.graphics.Paint.Align.RIGHT
     }
@@ -394,7 +395,7 @@ private fun DrawScope.drawXLabel(
 ) {
     val text = DateUtils.formatDate(epochMillis, "M/d")
     val paint = android.graphics.Paint().apply {
-        this.color = color.hashCode()
+        this.color = color.toArgb()
         this.textSize = textSize
         textAlign = android.graphics.Paint.Align.CENTER
     }

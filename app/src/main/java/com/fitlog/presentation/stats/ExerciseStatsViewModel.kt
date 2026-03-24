@@ -2,10 +2,10 @@ package com.fitlog.presentation.stats
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.fitlog.data.local.dao.ExerciseDateStat
-import com.fitlog.data.local.dao.StatsDao
 import com.fitlog.domain.model.Exercise
+import com.fitlog.domain.model.ExerciseDateStat
 import com.fitlog.domain.repository.ExerciseRepository
+import com.fitlog.domain.repository.StatsRepository
 import com.fitlog.util.DateUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -56,7 +56,7 @@ data class ExerciseStatsUiState(
 @HiltViewModel
 class ExerciseStatsViewModel @Inject constructor(
     private val exerciseRepository: ExerciseRepository,
-    private val statsDao: StatsDao
+    private val statsRepository: StatsRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ExerciseStatsUiState())
@@ -119,12 +119,12 @@ class ExerciseStatsViewModel @Inject constructor(
                 )
             }
 
-            val chartData = statsDao.getExerciseStatsByDate(exercise.id, startDate)
-            val allTimeMax = statsDao.getExerciseAllTimeMax(exercise.id) ?: 0f
-            val allTimeMaxDate = statsDao.getExerciseAllTimeMaxDate(exercise.id)
-            val latestWeight = statsDao.getExerciseLatestMaxWeight(exercise.id) ?: 0f
-            val totalDays = statsDao.getExerciseTotalDays(exercise.id)
-            val firstRecordDate = statsDao.getExerciseFirstRecordDate(exercise.id)
+            val chartData = statsRepository.getExerciseStatsByDate(exercise.id, startDate)
+            val allTimeMax = statsRepository.getExerciseAllTimeMax(exercise.id) ?: 0f
+            val allTimeMaxDate = statsRepository.getExerciseAllTimeMaxDate(exercise.id)
+            val latestWeight = statsRepository.getExerciseLatestMaxWeight(exercise.id) ?: 0f
+            val totalDays = statsRepository.getExerciseTotalDays(exercise.id)
+            val firstRecordDate = statsRepository.getExerciseFirstRecordDate(exercise.id)
 
             _uiState.update {
                 it.copy(
