@@ -40,6 +40,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fitlog.domain.model.WorkoutSet
 
+private val SetListSpacing = 12.dp
+
 @Composable
 fun WorkoutSetEditScreen(
     workoutRecordId: Long,
@@ -69,48 +71,47 @@ fun WorkoutSetEditScreen(
                     }
                 }
             )
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(Dimens.ScreenPadding)
-        ) {
-            Text(
-                text = "세트 기록",
-                style = MaterialTheme.typography.titleMedium
-            )
-
-            Spacer(modifier = Modifier.height(Dimens.SectionSpacing))
-
-            LazyColumn(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(uiState.sets, key = { it.id }) { set ->
-                    SetEditCard(
-                        set = set,
-                        onWeightChange = { weight ->
-                            viewModel.updateSet(set.id, weight, set.reps)
-                        },
-                        onRepsChange = { reps ->
-                            viewModel.updateSet(set.id, set.weight, reps)
-                        },
-                        onDelete = { viewModel.deleteSet(set.id) },
-                        canDelete = uiState.sets.size > 1
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(Dimens.SectionSpacing))
-
+        },
+        bottomBar = {
             Button(
                 onClick = { viewModel.addSet() },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(Dimens.ScreenPadding)
             ) {
                 Icon(Icons.Default.Add, contentDescription = null)
                 Text(" 세트 추가")
+            }
+        }
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = Dimens.ScreenPadding),
+            verticalArrangement = Arrangement.spacedBy(SetListSpacing)
+        ) {
+            item {
+                Spacer(modifier = Modifier.height(Dimens.ScreenPadding))
+                Text(
+                    text = "세트 기록",
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Spacer(modifier = Modifier.height(Dimens.SectionSpacing - SetListSpacing))
+            }
+
+            items(uiState.sets, key = { it.id }) { set ->
+                SetEditCard(
+                    set = set,
+                    onWeightChange = { weight ->
+                        viewModel.updateSet(set.id, weight, set.reps)
+                    },
+                    onRepsChange = { reps ->
+                        viewModel.updateSet(set.id, set.weight, reps)
+                    },
+                    onDelete = { viewModel.deleteSet(set.id) },
+                    canDelete = uiState.sets.size > 1
+                )
             }
         }
     }

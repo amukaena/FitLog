@@ -3,6 +3,7 @@ package com.fitlog.presentation.components
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -37,6 +38,7 @@ fun CopyWorkoutBottomSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .fillMaxHeight(0.85f)
                 .padding(horizontal = Dimens.ScreenPadding)
                 .padding(bottom = 32.dp)
         ) {
@@ -67,9 +69,9 @@ fun CopyWorkoutBottomSheet(
                 )
             } else {
                 LazyColumn(
-                    modifier = Modifier.height(400.dp)
+                    modifier = Modifier.weight(1f)
                 ) {
-                    items(recentWorkouts) { workout ->
+                    items(recentWorkouts, key = { it.id }) { workout ->
                         RecentWorkoutCard(
                             workout = workout,
                             onClick = { onWorkoutSelected(workout) }

@@ -87,33 +87,59 @@ fun CalendarScreen(
             }
         }
     ) { paddingValues ->
-        Column(
+        val workout = uiState.selectedDayWorkout
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            CalendarHeader(
-                year = uiState.currentYear,
-                month = uiState.currentMonth,
-                onPreviousMonth = viewModel::previousMonth,
-                onNextMonth = viewModel::nextMonth
-            )
+            item {
+                CalendarHeader(
+                    year = uiState.currentYear,
+                    month = uiState.currentMonth,
+                    onPreviousMonth = viewModel::previousMonth,
+                    onNextMonth = viewModel::nextMonth
+                )
+            }
 
-            CalendarGrid(
-                year = uiState.currentYear,
-                month = uiState.currentMonth,
-                selectedDate = uiState.selectedDate,
-                workoutDates = uiState.workoutDates,
-                onDateSelected = viewModel::selectDate
-            )
+            item {
+                CalendarGrid(
+                    year = uiState.currentYear,
+                    month = uiState.currentMonth,
+                    selectedDate = uiState.selectedDate,
+                    workoutDates = uiState.workoutDates,
+                    onDateSelected = viewModel::selectDate
+                )
+            }
 
-            Spacer(modifier = Modifier.height(Dimens.SectionSpacing))
+            item {
+                Spacer(modifier = Modifier.height(Dimens.SectionSpacing))
+                SelectedDateHeader(
+                    selectedDate = uiState.selectedDate,
+                    workout = workout
+                )
+                Spacer(modifier = Modifier.height(Dimens.ItemSpacing))
+            }
 
-            SelectedDateWorkout(
-                selectedDate = uiState.selectedDate,
-                workout = uiState.selectedDayWorkout,
-                onEditClick = { onNavigateToWorkout(uiState.selectedDate) }
-            )
+            if (workout == null || workout.records.isEmpty()) {
+                item {
+                    EmptyWorkoutCard(
+                        onClick = { onNavigateToWorkout(uiState.selectedDate) }
+                    )
+                }
+            } else {
+                items(workout.records, key = { it.id }) { record ->
+                    WorkoutRecordCard(
+                        record = record,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(
+                                horizontal = Dimens.ScreenPadding,
+                                vertical = Dimens.ItemSpacing / 2
+                            )
+                    )
+                }
+            }
         }
     }
 }
@@ -257,74 +283,63 @@ private fun CalendarDay(
 }
 
 @Composable
-private fun SelectedDateWorkout(
+private fun SelectedDateHeader(
     selectedDate: Long,
-    workout: DailyWorkout?,
-    onEditClick: () -> Unit
+    workout: DailyWorkout?
 ) {
-    Column(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = Dimens.ScreenPadding)
+            .padding(horizontal = Dimens.ScreenPadding),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Text(
+            text = DateUtils.formatDateWithDayOfWeek(selectedDate),
+            style = MaterialTheme.typography.titleMedium
+        )
+
+        if (workout != null) {
             Text(
-                text = DateUtils.formatDateWithDayOfWeek(selectedDate),
-                style = MaterialTheme.typography.titleMedium
+                text = workout.title,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary
             )
-
-            if (workout != null) {
-                Text(
-                    text = workout.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(Dimens.ItemSpacing))
-
-        if (workout == null || workout.records.isEmpty()) {
-            FitLogCard(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(onClick = onEditClick)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(32.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "운동 기록이 없습니다\n탭하여 추가하세요",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
-                    )
-                }
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(Dimens.ItemSpacing)
-            ) {
-                items(workout.records) { record ->
-                    WorkoutRecordCard(record = record)
-                }
-            }
         }
     }
 }
 
 @Composable
-private fun WorkoutRecordCard(record: WorkoutRecord) {
+private fun EmptyWorkoutCard(onClick: () -> Unit) {
     FitLogCard(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = Dimens.ScreenPadding)
+            .clickable(onClick = onClick)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(32.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "운동 기록이 없습니다\n탭하여 추가하세요",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+@Composable
+private fun WorkoutRecordCard(
+    record: WorkoutRecord,
+    modifier: Modifier = Modifier
+) {
+    FitLogCard(
+        modifier = modifier
     ) {
         Column(modifier = Modifier.padding(Dimens.ScreenPadding)) {
             Text(

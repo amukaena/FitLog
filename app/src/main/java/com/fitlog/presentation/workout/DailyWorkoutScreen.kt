@@ -95,6 +95,21 @@ fun DailyWorkoutScreen(
         }
     }
 
+    val categoryVolumes = remember(uiState.records) {
+        calculateCategoryVolumes(uiState.records)
+    }
+    val totalVolume = categoryVolumes.sumOf { it.volume }
+
+    val lazyListState = rememberLazyListState()
+    val reorderableLazyListState = rememberReorderableLazyListState(lazyListState) { from, to ->
+        val records = uiState.records
+        val fromIdx = records.indexOfFirst { it.id == from.key }
+        val toIdx = records.indexOfFirst { it.id == to.key }
+        if (fromIdx >= 0 && toIdx >= 0) {
+            viewModel.moveRecord(fromIdx, toIdx)
+        }
+    }
+
     Scaffold(
         topBar = {
             FitLogTopAppBar(
@@ -134,89 +149,12 @@ fun DailyWorkoutScreen(
                 }
             )
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(Dimens.ScreenPadding)
-        ) {
-            Text(
-                text = DateUtils.formatDate(date),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Spacer(modifier = Modifier.height(Dimens.SectionSpacing))
-
-            OutlinedTextField(
-                value = uiState.title,
-                onValueChange = viewModel::updateTitle,
-                label = { Text("오늘의 운동 제목") },
-                placeholder = { Text("예: 가슴/삼두") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-
-            Spacer(modifier = Modifier.height(Dimens.ItemSpacing))
-
-            OutlinedTextField(
-                value = uiState.memo,
-                onValueChange = viewModel::updateMemo,
-                label = { Text("메모 (선택)") },
-                modifier = Modifier.fillMaxWidth(),
-                minLines = 2,
-                maxLines = 3
-            )
-
-            Spacer(modifier = Modifier.height(Dimens.SectionSpacing))
-
-            // 부위별 볼륨 요약
-            val categoryVolumes = remember(uiState.records) {
-                calculateCategoryVolumes(uiState.records)
-            }
-            val totalVolume = remember(categoryVolumes) {
-                categoryVolumes.sumOf { it.volume }
-            }
-            if (totalVolume > 0) {
-                VolumeSummarySection(
-                    categoryVolumes = categoryVolumes,
-                    totalVolume = totalVolume
-                )
-                Spacer(modifier = Modifier.height(Dimens.SectionSpacing))
-            }
-
-            val lazyListState = rememberLazyListState()
-            val reorderableLazyListState = rememberReorderableLazyListState(lazyListState) { from, to ->
-                viewModel.moveRecord(from.index, to.index)
-            }
-
-            LazyColumn(
-                state = lazyListState,
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(Dimens.ItemSpacing)
-            ) {
-                itemsIndexed(
-                    items = uiState.records,
-                    key = { _, record -> record.id }
-                ) { _, record ->
-                    ReorderableItem(reorderableLazyListState, key = record.id) { isDragging ->
-                        WorkoutRecordEditCard(
-                            record = record,
-                            isDragging = isDragging,
-                            onEditClick = { onNavigateToSetEdit(record.id) },
-                            onDeleteClick = { viewModel.deleteRecord(record.id) },
-                            modifier = Modifier.longPressDraggableHandle()
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(Dimens.SectionSpacing))
-
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        bottomBar = {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(Dimens.ScreenPadding),
                 horizontalArrangement = Arrangement.spacedBy(Dimens.ItemSpacing)
             ) {
                 Button(
@@ -233,6 +171,72 @@ fun DailyWorkoutScreen(
                 ) {
                     Icon(Icons.Default.ContentCopy, contentDescription = null)
                     Text(" 이전 기록 복사")
+                }
+            }
+        }
+    ) { paddingValues ->
+        LazyColumn(
+            state = lazyListState,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = Dimens.ScreenPadding),
+            verticalArrangement = Arrangement.spacedBy(Dimens.ItemSpacing)
+        ) {
+            item {
+                Column {
+                    Spacer(modifier = Modifier.height(Dimens.ScreenPadding))
+                    Text(
+                        text = DateUtils.formatDate(date),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Spacer(modifier = Modifier.height(Dimens.SectionSpacing))
+
+                    OutlinedTextField(
+                        value = uiState.title,
+                        onValueChange = viewModel::updateTitle,
+                        label = { Text("오늘의 운동 제목") },
+                        placeholder = { Text("예: 가슴/삼두") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+
+                    Spacer(modifier = Modifier.height(Dimens.ItemSpacing))
+
+                    OutlinedTextField(
+                        value = uiState.memo,
+                        onValueChange = viewModel::updateMemo,
+                        label = { Text("메모 (선택)") },
+                        modifier = Modifier.fillMaxWidth(),
+                        minLines = 2,
+                        maxLines = 3
+                    )
+
+                    Spacer(modifier = Modifier.height(Dimens.SectionSpacing))
+
+                    if (totalVolume > 0) {
+                        VolumeSummarySection(
+                            categoryVolumes = categoryVolumes,
+                            totalVolume = totalVolume
+                        )
+                    }
+                }
+            }
+
+            itemsIndexed(
+                items = uiState.records,
+                key = { _, record -> record.id }
+            ) { _, record ->
+                ReorderableItem(reorderableLazyListState, key = record.id) { isDragging ->
+                    WorkoutRecordEditCard(
+                        record = record,
+                        isDragging = isDragging,
+                        onEditClick = { onNavigateToSetEdit(record.id) },
+                        onDeleteClick = { viewModel.deleteRecord(record.id) },
+                        modifier = Modifier.longPressDraggableHandle()
+                    )
                 }
             }
         }
@@ -297,10 +301,10 @@ private fun WorkoutRecordEditCard(
         modifier = Modifier
             .fillMaxWidth()
             .then(
-                if (isDragging) Modifier.shadow(8.dp, RoundedCornerShape(12.dp))
+                if (isDragging) Modifier.shadow(8.dp, RoundedCornerShape(Dimens.CardCornerRadius))
                 else Modifier
             ),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(Dimens.CardCornerRadius),
         colors = CardDefaults.cardColors(
             containerColor = if (isDragging)
                 MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f)
