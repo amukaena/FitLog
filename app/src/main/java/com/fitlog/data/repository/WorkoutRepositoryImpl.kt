@@ -9,6 +9,7 @@ import com.fitlog.data.local.entity.WorkoutSetEntity
 import com.fitlog.data.local.entity.toDomain
 import com.fitlog.data.local.entity.toEntity
 import com.fitlog.domain.model.DailyWorkout
+import com.fitlog.domain.model.ExerciseRecentRecord
 import com.fitlog.domain.model.WorkoutRecord
 import com.fitlog.domain.model.WorkoutSet
 import com.fitlog.domain.repository.WorkoutRepository
@@ -166,5 +167,23 @@ class WorkoutRepositoryImpl @Inject constructor(
             val setsStr = sets.formatCompact()
             record.exerciseId to "$dateStr $setsStr"
         }
+    }
+
+    override suspend fun getRecentRecordsForExercise(
+        exerciseId: Long,
+        limit: Int
+    ): List<ExerciseRecentRecord> {
+        // 세트가 비어 있거나 전부 0인 기록은 부하량 비교에 의미가 없으므로 제외한다.
+        // 그만큼 결과가 줄어들 수 있어 limit 보다 넉넉히 조회한 뒤 잘라낸다.
+        val records = workoutRecordDao.getRecentRecordsForExercise(exerciseId, limit * 2)
+
+        val result = mutableListOf<ExerciseRecentRecord>()
+        for (record in records) {
+            if (result.size >= limit) break
+            val sets = workoutSetDao.getSetsByRecordIdSync(record.recordId).map { it.toDomain() }
+            if (sets.none { it.weight > 0f || it.reps > 0 }) continue
+            result += ExerciseRecentRecord(date = record.date, sets = sets)
+        }
+        return result
     }
 }

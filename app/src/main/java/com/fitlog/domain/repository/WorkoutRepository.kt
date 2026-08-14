@@ -1,6 +1,7 @@
 package com.fitlog.domain.repository
 
 import com.fitlog.domain.model.DailyWorkout
+import com.fitlog.domain.model.ExerciseRecentRecord
 import com.fitlog.domain.model.WorkoutRecord
 import com.fitlog.domain.model.WorkoutSet
 import kotlinx.coroutines.flow.Flow
@@ -31,4 +32,6 @@ interface WorkoutRepository {
     suspend fun clearAllData()
 
     suspend fun getExerciseRecentSummaries(): Map<Long, String>
+
+    suspend fun getRecentRecordsForExercise(exerciseId: Long, limit: Int): List<ExerciseRecentRecord>
 }

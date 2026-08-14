@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fitlog.domain.model.DailyWorkout
 import com.fitlog.domain.model.Exercise
+import com.fitlog.domain.model.ExerciseRecentRecord
 import com.fitlog.domain.model.WorkoutRecord
 import com.fitlog.domain.model.WorkoutSet
 import com.fitlog.domain.repository.ExerciseRepository
@@ -32,6 +33,7 @@ data class DailyWorkoutUiState(
     val exercises: List<Exercise> = emptyList(),
     val recentWorkouts: List<DailyWorkout> = emptyList(),
     val exerciseRecentSummaries: Map<Long, String> = emptyMap(),
+    val exerciseRecentHistories: Map<Long, List<ExerciseRecentRecord>> = emptyMap(),
     val isLoading: Boolean = false,
     val isSaved: Boolean = false,
     val isDeleted: Boolean = false
@@ -87,6 +89,24 @@ class WorkoutViewModel @Inject constructor(
         recentWorkoutsJob = viewModelScope.launch {
             workoutRepository.getRecentDailyWorkouts(10).collect { recent ->
                 _uiState.update { it.copy(recentWorkouts = recent.filter { w -> w.date != date }) }
+            }
+        }
+    }
+
+    /**
+     * 운동 선택 시트에서 특정 운동의 최근 기록을 펼칠 때 호출된다.
+     * 이미 불러온 운동은 다시 조회하지 않는다.
+     */
+    fun loadExerciseRecentHistory(exerciseId: Long) {
+        if (_uiState.value.exerciseRecentHistories.containsKey(exerciseId)) return
+
+        viewModelScope.launch {
+            val history = workoutRepository.getRecentRecordsForExercise(
+                exerciseId = exerciseId,
+                limit = RECENT_HISTORY_LIMIT
+            )
+            _uiState.update {
+                it.copy(exerciseRecentHistories = it.exerciseRecentHistories + (exerciseId to history))
             }
         }
     }
@@ -237,5 +257,9 @@ class WorkoutViewModel @Inject constructor(
         val formattedText = WorkoutFormatter.formatForAI(workout)
         clipboardHelper.copyToClipboard("운동 기록", formattedText)
         return true
+    }
+
+    companion object {
+        private const val RECENT_HISTORY_LIMIT = 3
     }
 }

@@ -55,4 +55,14 @@ interface WorkoutRecordDao {
         )
     """)
     suspend fun getLatestRecordForAllExercises(): List<LatestExerciseRecord>
+
+    @Query("""
+        SELECT wr.exerciseId, wr.id as recordId, dw.date
+        FROM workout_records wr
+        JOIN daily_workouts dw ON wr.dailyWorkoutId = dw.id
+        WHERE wr.exerciseId = :exerciseId
+        ORDER BY dw.date DESC, wr.id DESC
+        LIMIT :limit
+    """)
+    suspend fun getRecentRecordsForExercise(exerciseId: Long, limit: Int): List<LatestExerciseRecord>
 }
